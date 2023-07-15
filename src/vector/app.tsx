@@ -38,7 +38,7 @@ import { QueryDict, encodeParams } from "matrix-js-sdk/src/utils";
 
 import { parseQs } from "./url_utils";
 import VectorBasePlatform from "./platform/VectorBasePlatform";
-import { getScreenFromLocation, init as initRouting, onNewScreen } from "./routing";
+import { getInitialScreenAfterLogin, getScreenFromLocation, init as initRouting, onNewScreen } from "./routing";
 
 // add React and ReactPerf to the global namespace, to make them easier to access via the console
 // this incidentally means we can forget our React imports in JSX files without penalty.
@@ -133,6 +133,8 @@ export async function loadApp(fragParams: {}): Promise<ReactElement> {
     const defaultDeviceName =
         snakedConfig.get("default_device_display_name") ?? platform?.getDefaultDeviceDisplayName();
 
+    const initialScreenAfterLogin = getInitialScreenAfterLogin(window.location);
+
     return (
         <MatrixChat
             onNewScreen={onNewScreen}
@@ -142,7 +144,7 @@ export async function loadApp(fragParams: {}): Promise<ReactElement> {
             startingFragmentQueryParams={fragParams}
             enableGuest={!config.disable_guests}
             onTokenLoginCompleted={onTokenLoginCompleted}
-            initialScreenAfterLogin={getScreenFromLocation(window.location)}
+            initialScreenAfterLogin={initialScreenAfterLogin}
             defaultDeviceDisplayName={defaultDeviceName}
         />
     );
@@ -169,11 +171,11 @@ async function verifyServerConfig(): Promise<IConfigOptions> {
         const isUrl = config["default_is_url"];
 
         const incompatibleOptions = [wkConfig, serverName, hsUrl].filter((i) => !!i);
-        if (incompatibleOptions.length > 1) {
+        if (hsUrl && (wkConfig || serverName)) {
             // noinspection ExceptionCaughtLocallyJS
             throw new UserFriendlyError(
-                "Invalid configuration: can only specify one of default_server_config, default_server_name, " +
-                    "or default_hs_url.",
+                "Invalid configuration: a default_hs_url can't be specified along with default_server_name " +
+                    "or default_server_config",
             );
         }
         if (incompatibleOptions.length < 1) {
@@ -201,7 +203,7 @@ async function verifyServerConfig(): Promise<IConfigOptions> {
         }
 
         let discoveryResult: ClientConfig | undefined;
-        if (wkConfig) {
+        if (!serverName && wkConfig) {
             logger.log("Config uses a default_server_config - validating object");
             discoveryResult = await AutoDiscovery.fromDiscoveryConfig(wkConfig);
         }
@@ -213,6 +215,10 @@ async function verifyServerConfig(): Promise<IConfigOptions> {
                     "use default_server_config instead.",
             );
             discoveryResult = await AutoDiscovery.findClientConfig(serverName);
+            if (discoveryResult["m.homeserver"].base_url === null && wkConfig) {
+                logger.log("Finding base_url failed but a default_server_config was found - using it as a fallback");
+                discoveryResult = await AutoDiscovery.fromDiscoveryConfig(wkConfig);
+            }
         }
 
         validatedConfig = AutoDiscoveryUtils.buildValidatedConfigFromDiscovery(serverName, discoveryResult, true);
