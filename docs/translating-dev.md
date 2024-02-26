@@ -36,7 +36,7 @@ function getColorName(hex) {
 
 ## Key naming rules
 
-These rules are based on https://github.com/vector-im/element-x-android/blob/develop/tools/localazy/README.md
+These rules are based on https://github.com/element-hq/element-x-android/blob/develop/tools/localazy/README.md
 At this time we are not trying to have a translation key per UI element as some methodologies use,
 whilst that would offer the greatest flexibility, it would also make reuse between projects nigh impossible.
 We are aiming for a set of common strings to be shared then some more localised translations per context they may appear in.
@@ -46,10 +46,6 @@ We are aiming for a set of common strings to be shared then some more localised 
 3. Keys for common accessibility strings must start by `a11y_`. Example: `a11y_hide_password`
 4. Otherwise, try to group keys logically and nest where appropriate, such as `keyboard_` for strings relating to keyboard shortcuts.
 5. Ensure your translation keys do not include `.` or `|` or ` `. Try to balance string length against descriptiveness.
-
-## matrix-react-sdk is still undergoing migration to translation keys
-
-If you are fortunate enough to be modifying not yet migrated strings please treat them as a new string using instructions below.
 
 ## Adding new strings
 
