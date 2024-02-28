@@ -31,7 +31,7 @@
     "default_theme": "dark",
     "room_directory": {
         "servers": ["m.prtl.cc"],
-        "servers": ["matrix.org"],
+        "servers": ["matrix.org"]
     },
     "enable_presence_by_hs_url": {
         "https://matrix.org": false,
