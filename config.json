@@ -1,7 +1,7 @@
 {
     "default_server_config": {
         "m.homeserver": {
-            "base_url": "https://m.prtl.cc",
+            "base_url": "https://synapse.prtl.cc",
             "server_name": "Portal"
         },
         "m.identity_server": {
@@ -30,7 +30,7 @@
     "default_federate": true,
     "default_theme": "dark",
     "room_directory": {
-        "servers": ["m.prtl.cc"],
+        "servers": ["synapse.prtl.cc"],
         "servers": ["matrix.org"]
     },
     "enable_presence_by_hs_url": {
