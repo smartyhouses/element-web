@@ -25,13 +25,9 @@ import { extractErrorMessageFromError } from "matrix-react-sdk/src/components/vi
 import { parseQsFromFragment } from "./url_utils";
 import "./modernizr";
 
-// Make setImmediate available in bundle
-import "setimmediate";
-
 // Require common CSS here; this will make webpack process it into bundle.css.
 // Our own CSS (which is themed) is imported via separate webpack entry points
 // in webpack.config.js
-require("gfm.css/gfm.css");
 require("katex/dist/katex.css");
 
 /**
@@ -60,8 +56,8 @@ function checkBrowserFeatures(): boolean {
         return false;
     }
 
-    // Custom checks atop Modernizr because it doesn't have ES2018/ES2019 checks
-    // in it for some features we depend on.
+    // Custom checks atop Modernizr because it doesn't have checks in it for
+    // some features we depend on.
     // Modernizr requires rules to be lowercase with no punctuation.
     // ES2018: http://262.ecma-international.org/9.0/#sec-promise.prototype.finally
     window.Modernizr.addTest("promiseprototypefinally", () => typeof window.Promise?.prototype?.finally === "function");
@@ -74,6 +70,11 @@ function checkBrowserFeatures(): boolean {
     );
     // ES2019: http://262.ecma-international.org/10.0/#sec-object.fromentries
     window.Modernizr.addTest("objectfromentries", () => typeof window.Object?.fromEntries === "function");
+    // ES2024: https://tc39.es/ecma262/2024/#sec-get-regexp.prototype.unicodesets
+    window.Modernizr.addTest(
+        "regexpunicodesets",
+        () => window.RegExp?.prototype && "unicodeSets" in window.RegExp.prototype,
+    );
 
     const featureList = Object.keys(window.Modernizr) as Array<keyof ModernizrStatic>;
 
@@ -180,7 +181,7 @@ async function start(): Promise<void> {
         // error handling begins here
         // ##########################
         if (!acceptBrowser) {
-            await new Promise<void>((resolve) => {
+            await new Promise<void>((resolve, reject) => {
                 logger.error("Browser is missing required features.");
                 // take to a different landing page to AWOOOOOGA at the user
                 showIncompatibleBrowser(() => {
@@ -189,7 +190,7 @@ async function start(): Promise<void> {
                     }
                     logger.log("User accepts the compatibility risks.");
                     resolve();
-                });
+                }).catch(reject);
             });
         }
 
